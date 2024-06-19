@@ -317,9 +317,12 @@ func (srv *Server) handleParse(ctx context.Context, reader *buffer.Reader, write
 
 	srv.logger.Debug("incoming extended query", slog.String("query", query), slog.String("name", name), slog.Int("parameters", len(statement.parameters)))
 
-	err = srv.Statements.Set(ctx, name, statement)
-	if err != nil {
-		return ErrorCode(writer, err)
+	if name != "" {
+		// Cache non anonymous prepared statements only
+		err = srv.Statements.Set(ctx, name, statement)
+		if err != nil {
+			return ErrorCode(writer, err)
+		}
 	}
 
 	writer.Start(types.ServerParseComplete)
